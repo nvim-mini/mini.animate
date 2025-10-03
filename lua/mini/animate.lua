@@ -1,10 +1,7 @@
 --- *mini.animate* Animate common Neovim actions
---- *MiniAnimate*
 ---
 --- MIT License Copyright (c) 2022 Evgeni Chasnovski
----
---- ==============================================================================
----
+
 --- Features:
 --- - Works out of the box with a single `require('mini.animate').setup()`.
 ---   No extra mappings or commands needed.
@@ -56,7 +53,7 @@
 ---
 --- # Comparisons ~
 ---
---- - Neovide:
+--- - [Neovide](https://neovide.dev/):
 ---     - Neovide is a standalone GUI which has more control over its animations.
 ---       While 'mini.animate' works inside terminal emulator (with all its
 ---       limitations, like lack of pixel-size control over animations).
@@ -66,26 +63,26 @@
 ---       'mini.animate' is fully customizable.
 ---     - 'mini.animate' implements animations for window open/close, while
 ---       Neovide does not.
---- - 'edluffy/specs.nvim':
+--- - [edluffy/specs.nvim](https://github.com/edluffy/specs.nvim):
 ---     - 'mini.animate' approaches cursor movement visualization via
 ---       customizable path function (uses extmarks), while 'specs.nvim' can
 ---       customize within its own visual effects (shading and floating
 ---       window resizing).
---- - 'karb94/neoscroll.nvim':
+--- - [karb94/neoscroll.nvim](https://github.com/karb94/neoscroll.nvim):
 ---     - Scroll animation is triggered only inside dedicated mappings.
 ---       'mini.animate' animates scroll resulting from any window view change.
---- - 'anuvyklack/windows.nvim':
+--- - [anuvyklack/windows.nvim](https://github.com/anuvyklack/windows.nvim):
 ---     - Resize animation is done only within custom commands and mappings,
 ---       while 'mini.animate' animates any resize with appropriate values of
 ---       'winheight' / 'winwidth' and 'winminheight' / 'winminwidth').
 ---
 --- # Highlight groups ~
 ---
---- * `MiniAnimateCursor` - highlight of cursor during its animated movement.
---- * `MiniAnimateNormalFloat` - highlight of floating window for `open` and
+--- - `MiniAnimateCursor` - highlight of cursor during its animated movement.
+--- - `MiniAnimateNormalFloat` - highlight of floating window for `open` and
 ---   `close` animations.
 ---
---- To change any highlight group, modify it directly with |:highlight|.
+--- To change any highlight group, set it directly with |nvim_set_hl()|.
 ---
 --- # Disabling ~
 ---
@@ -94,6 +91,7 @@
 --- number of different scenarios and customization intentions, writing exact
 --- rules for disabling module's functionality is left to user. See
 --- |mini.nvim-disabling-recipes| for common recipes.
+---@tag MiniAnimate
 
 ---@diagnostic disable:undefined-field
 
@@ -128,35 +126,33 @@ MiniAnimate.setup = function(config)
   H.create_default_hl()
 end
 
---- Module config
----
---- Default values:
+--- Defaults ~
 ---@eval return MiniDoc.afterlines_to_code(MiniDoc.current.eval_section)
 ---@text # General ~
----                                                             *MiniAnimate-timing*
---- - Every animation is a non-blockingly scheduled series of specific actions.
----   They are executed in a sequence of timed steps controlled by `timing` option.
----   It is a callable which, given next and total step numbers, returns wait time
----   (in ms). See |MiniAnimate.gen_timing| for builtin timing functions.
+---
+--- - *MiniAnimate-timing* Every animation is a non-blockingly scheduled series of
+---   specific actions. They are executed in a sequence of timed steps controlled
+---   by `timing` option. It is a callable which, given next and total step numbers,
+---   returns wait time (in ms).
+---   See |MiniAnimate.gen_timing| for builtin timing functions.
 ---   See |MiniAnimate.animate()| for more details about animation process.
 ---
 --- - Every animation can be enabled/disabled independently by setting `enable`
 ---   option to `true`/`false`.
 ---
----                                                         *MiniAnimate-done-event*
---- - Every animation triggers custom |User| event when it is finished. It is
----   named `MiniAnimateDoneXxx` with `Xxx` replaced by capitalized supported
----   animation action name (like `MiniAnimateDoneCursor`). Use it to schedule
----   some action after certain animation is completed. Alternatively, you can
----   use |MiniAnimate.execute_after()| (usually preferred in mappings).
+--- - *MiniAnimate-done-event* Every animation triggers custom |User| event when it
+---   is finished. It is named `MiniAnimateDoneXxx` with `Xxx` replaced by capitalized
+---   supported animation action name (like `MiniAnimateDoneCursor`). Use it to
+---   schedule some action after certain animation is completed. Alternatively,
+---   you can use |MiniAnimate.execute_after()| (usually preferred in mappings).
 ---
 --- - Each animation has its main step generator which defines how particular
 ---   animation is done. They all are callables which take some input data and
 ---   return an array of step data. Length of that array determines number of
 ---   animation steps. Outputs `nil` and empty table result in no animation.
 ---
----                                                      *MiniAnimate.config.cursor*
 --- # Cursor ~
+--- *MiniAnimate.config.cursor*
 ---
 --- This animation is triggered for each movement of cursor inside same window
 --- and buffer. Its visualization step consists from placing single extmark (see
@@ -198,8 +194,8 @@ end
 --- <
 --- After animation is done, `MiniAnimateDoneCursor` event is triggered.
 ---
----                                                      *MiniAnimate.config.scroll*
 --- # Scroll ~
+--- *MiniAnimate.config.scroll*
 ---
 --- This animation is triggered for each vertical scroll of current window.
 --- Its visualization step consists from performing a small subscroll which all
@@ -233,8 +229,8 @@ end
 ---       Example: a useful `nnoremap n nzvzz` mapping (consecutive application
 ---       of |n|, |zv|, and |zz|) should be expressed in the following way: >lua
 ---
----   '<Cmd>lua vim.cmd("normal! n"); ' ..
----     'MiniAnimate.execute_after("scroll", "normal! zvzz")<CR>'
+---         '<Cmd>lua vim.cmd("normal! n"); ' ..
+---           'MiniAnimate.execute_after("scroll", "normal! zvzz")<CR>'
 --- <
 --- - Default timing might conflict with scrolling via holding a key (like `j` or `k`
 ---   with 'wrap' enabled) due to high key repeat rate: next scroll is done before
@@ -258,8 +254,8 @@ end
 --- <
 --- After animation is done, `MiniAnimateDoneScroll` event is triggered.
 ---
----                                                      *MiniAnimate.config.resize*
 --- # Resize ~
+--- *MiniAnimate.config.resize*
 ---
 --- This animation is triggered for window resize while having same layout of
 --- same windows. For example, it won't trigger when window is opened/closed or
@@ -317,8 +313,9 @@ end
 --- <
 --- After animation is done, `MiniAnimateDoneResize` event is triggered.
 ---
----                               *MiniAnimate.config.open* *MiniAnimate.config.close*
 --- # Window open/close ~
+--- *MiniAnimate.config.open*
+--- *MiniAnimate.config.close*
 ---
 --- These animations are similarly triggered for regular (non-floating) window
 --- open/close. Their visualization step consists from drawing empty floating
@@ -514,7 +511,7 @@ end
 ---
 --- Mostly meant to be used inside mappings.
 ---
---- Example ~
+--- Example:
 ---
 --- A useful `nnoremap n nzvzz` mapping (consecutive application of |n|, |zv|, and |zz|)
 --- should be expressed in the following way: >lua

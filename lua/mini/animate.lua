@@ -1803,7 +1803,8 @@ H.make_openclose_step = function(action_type, win_id, config)
       end
 
       -- Empty buffer should always be valid (might have been closed by user command)
-      if H.empty_buf_id == nil or not vim.api.nvim_buf_is_valid(H.empty_buf_id) then
+      if H.empty_buf_id == nil or not vim.api.nvim_buf_is_loaded(H.empty_buf_id) then
+        pcall(vim.api.nvim_buf_delete, H.empty_buf_id, { force = true })
         H.empty_buf_id = vim.api.nvim_create_buf(false, true)
         H.set_buf_name(H.empty_buf_id, 'open-close-scratch')
       end

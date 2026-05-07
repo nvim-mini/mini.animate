@@ -1248,6 +1248,11 @@ H.create_autocommands = function()
   au('CursorMoved', '*', H.auto_cursor, 'Animate cursor')
 
   au('WinScrolled', '*', function()
+    -- On Neovim>=0.13 `WinScrolled` is also triggered when window scrolls
+    -- during 'incsearch' and when cancelling. Ignore these state changes to
+    -- not have extra scroll as a result of it.
+    H.ignore_incsearch_scroll()
+
     -- Inside `WinScrolled` first animate resize before scroll to avoid flicker
     H.auto_resize()
     H.auto_scroll()
@@ -1266,7 +1271,7 @@ H.create_autocommands = function()
   -- end). Use `vim.schedule()` to make it affect state only after scroll is
   -- done and cursor is already in correct final position.
   au('CursorMoved', '*', vim.schedule_wrap(H.track_scroll_state_partial), 'Track partial scroll state')
-  au('CmdlineLeave', '*', H.on_cmdline_leave, 'On CmdlineLeave')
+  au('CmdlineLeave', '*', function() H.ignore_incsearch_scroll() end, 'Ignore incsearch scroll')
 
   -- Use `vim.schedule_wrap()` animation to get a window data used for
   -- displaying (and not one after just opening). Useful for 'nvim-tree'.
@@ -1399,15 +1404,16 @@ H.track_scroll_state_partial = function()
   H.cache.scroll_state.cursor = { line = vim.fn.line('.'), virtcol = vim.fn.virtcol('.') }
 end
 
-H.on_cmdline_leave = function()
+H.ignore_incsearch_scroll = function()
   local cmd_type = vim.fn.getcmdtype()
   local is_insearch = vim.o.incsearch and (cmd_type == '/' or cmd_type == '?')
-  if not is_insearch then return end
+  if not (is_insearch or H.cache.scroll_state.aborted_incsearch) then return end
 
   -- Update scroll state so that there is no scroll animation after confirming
   -- incremental search. Otherwise it leads to unnecessary animation from
   -- initial scroll state to the one **already shown**.
   H.track_scroll_state()
+  H.cache.scroll_state.aborted_incsearch = vim.v.event.abort
 end
 
 H.auto_openclose = function(action_type)
